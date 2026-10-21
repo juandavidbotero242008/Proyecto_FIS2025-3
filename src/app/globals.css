@@ -1185,6 +1185,7 @@ input[type="date"]::-webkit-calendar-picker-indicator {
     z-index: 50;
     flex-direction: row;
     padding: 6px;
+    padding-bottom: max(6px, env(safe-area-inset-bottom));
     border-right: none;
     border-top: 1px solid var(--border);
     background: var(--bg-elevated);
@@ -1206,7 +1207,7 @@ input[type="date"]::-webkit-calendar-picker-indicator {
     padding: 6px;
   }
   .main {
-    padding-bottom: 90px;
+    padding-bottom: calc(90px + env(safe-area-inset-bottom, 0px));
   }
   .grid-3,
   .grid-2 {
@@ -1226,5 +1227,81 @@ input[type="date"]::-webkit-calendar-picker-indicator {
   }
   .form-row {
     grid-template-columns: 1fr;
+  }
+}
+
+/* ---------- PWA Install Banner & Safe Area ---------- */
+.pwa-install-banner {
+  position: fixed;
+  bottom: 84px;
+  left: 16px;
+  right: 16px;
+  max-width: 480px;
+  margin: 0 auto;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 14px;
+  background: rgba(17, 23, 38, 0.95);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius);
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5);
+  animation: scaleIn 0.3s var(--ease) both;
+}
+
+.pwa-content {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+.pwa-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background: var(--primary-surface);
+  color: var(--primary);
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+}
+
+.pwa-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.pwa-text strong {
+  font-size: 13.5px;
+  color: var(--text);
+  line-height: 1.2;
+}
+
+.pwa-text span {
+  font-size: 11.5px;
+  color: var(--text-muted);
+  line-height: 1.3;
+}
+
+.pwa-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+@media (min-width: 861px) {
+  .pwa-install-banner {
+    bottom: 24px;
+    right: 24px;
+    left: auto;
+    margin: 0;
   }
 }
