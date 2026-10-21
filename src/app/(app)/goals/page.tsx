@@ -55,6 +55,13 @@ export default async function GoalsPage() {
         <div className="progress" style={{ height: 12, marginTop: 12 }}>
           <div className="progress-bar" style={{ width: `${Math.min(overallProgress, 100)}%` }} />
         </div>
+
+        <div style={{ marginTop: 12, display: "flex", alignItems: "center", gap: 8, fontSize: 12, color: "var(--text-muted)" }}>
+          <span style={{ color: "var(--primary)" }}>🔒</span>
+          <span>
+            <strong>Protección activa (HU-06):</strong> Los {formatMoney(totalSaved, user.currency)} ahorrados están congelados de tu saldo disponible diario para protegerlos de gastos impulsivos.
+          </span>
+        </div>
       </div>
 
       {/* Lista de Metas */}

@@ -8,10 +8,12 @@ import { ActionState, LoginSchema, RegisterSchema, fieldErrors } from "@/lib/def
 
 export async function register(_prev: ActionState, formData: FormData): Promise<ActionState> {
   const income = formData.get("monthlyIncome");
+  const role = (formData.get("role") as "SENIOR" | "JUNIOR") || "SENIOR";
   const parsed = RegisterSchema.safeParse({
     name: formData.get("name"),
     email: formData.get("email"),
     password: formData.get("password"),
+    role,
     currency: formData.get("currency") || "USD",
     monthlyIncome: income ? income : undefined,
   });
@@ -25,9 +27,15 @@ export async function register(_prev: ActionState, formData: FormData): Promise<
     data: {
       name,
       email,
+      role: parsed.data.role,
       currency,
       monthlyIncome,
       passwordHash: await bcrypt.hash(password, 10),
+      score: 75,
+      // Límites por defecto si se registra como Junior independiente
+      dailyLimit: parsed.data.role === "JUNIOR" ? 50 : null,
+      weeklyLimit: parsed.data.role === "JUNIOR" ? 250 : null,
+      monthlyLimit: parsed.data.role === "JUNIOR" ? 1000 : null,
     },
   });
 

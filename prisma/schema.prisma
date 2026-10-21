@@ -11,6 +11,11 @@ datasource db {
   directUrl = env("DATABASE_URL_UNPOOLED")
 }
 
+enum Role {
+  SENIOR
+  JUNIOR
+}
+
 enum TransactionType {
   EXPENSE
   INCOME
@@ -39,18 +44,37 @@ enum GoalStatus {
 }
 
 model User {
-  id            String        @id @default(uuid())
-  email         String        @unique
-  passwordHash  String        @map("password_hash")
-  name          String
-  currency      String        @default("USD")
-  monthlyIncome Decimal?      @map("monthly_income") @db.Decimal(12, 2)
-  createdAt     DateTime      @default(now()) @map("created_at")
-  transactions  Transaction[]
-  categories    Category[]
-  goals         SavingsGoal[]
-  budgets       Budget[]
+  id                   String        @id @default(uuid())
+  email                String        @unique
+  passwordHash         String        @map("password_hash")
+  name                 String
+  role                 Role          @default(SENIOR)
+  currency             String        @default("USD")
+  monthlyIncome        Decimal?      @map("monthly_income") @db.Decimal(12, 2)
+  
+  // Límites para perfiles Junior configurados por el Senior
+  dailyLimit           Decimal?      @map("daily_limit") @db.Decimal(12, 2)
+  weeklyLimit          Decimal?      @map("weekly_limit") @db.Decimal(12, 2)
+  monthlyLimit         Decimal?      @map("monthly_limit") @db.Decimal(12, 2)
+  
+  // Scoring de Salud Financiera e insignias de micro-learning
+  score                Int           @default(75)
+  badges               String[]      @default([])
+  completedLessons     String[]      @default([])
+  
+  // Relación familiar (Senior -> Juniors)
+  seniorId             String?       @map("senior_id")
+  senior               User?         @relation("FamilyLink", fields: [seniorId], references: [id], onDelete: SetNull)
+  juniors              User[]        @relation("FamilyLink")
+  
+  createdAt            DateTime      @default(now()) @map("created_at")
+  transactions         Transaction[] @relation("UserTransactions")
+  receivedTransactions Transaction[] @relation("RelatedTransactions")
+  categories           Category[]
+  goals                SavingsGoal[]
+  budgets              Budget[]
 
+  @@index([seniorId])
   @@map("users")
 }
 
@@ -81,13 +105,17 @@ model Transaction {
   description   String
   paymentMethod PaymentMethod   @default(DEBIT_CARD) @map("payment_method")
   isRecurring   Boolean         @default(false) @map("is_recurring")
+  isImpulsive   Boolean         @default(false) @map("is_impulsive")
+  relatedUserId String?         @map("related_user_id")
   tags          String[]        @default([])
   notes         String?
   createdAt     DateTime        @default(now()) @map("created_at")
-  user          User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user          User            @relation("UserTransactions", fields: [userId], references: [id], onDelete: Cascade)
+  relatedUser   User?           @relation("RelatedTransactions", fields: [relatedUserId], references: [id], onDelete: SetNull)
   category      Category        @relation(fields: [categoryId], references: [id], onDelete: Restrict)
 
   @@index([userId, date])
+  @@index([relatedUserId])
   @@map("transactions")
 }
 

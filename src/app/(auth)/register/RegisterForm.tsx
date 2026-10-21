@@ -18,6 +18,51 @@ export default function RegisterForm() {
       </p>
       <form action={action} className="form">
         <div className="field">
+          <label className="label">Tipo de perfil</label>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: 10 }}>
+            <label
+              style={{
+                display: "flex",
+                flexDirection: "column",
+                gap: 4,
+                padding: "10px 12px",
+                borderRadius: "var(--radius-sm)",
+                border: "1px solid var(--border)",
+                background: "var(--surface)",
+                cursor: "pointer",
+              }}
+            >
+              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                <input type="radio" name="role" value="SENIOR" defaultChecked />
+                <span style={{ fontWeight: 600 }}>Senior (Acudiente)</span>
+              </div>
+              <span style={{ fontSize: 11, color: "var(--text-muted)", paddingLeft: 24 }}>
+                Control familiar, presupuestos e inversiones.
+              </span>
+            </label>
+            <label
+              style={{
+                display: "flex",
+                flexDirection: "column",
+                gap: 4,
+                padding: "10px 12px",
+                borderRadius: "var(--radius-sm)",
+                border: "1px solid var(--border)",
+                background: "var(--surface)",
+                cursor: "pointer",
+              }}
+            >
+              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                <input type="radio" name="role" value="JUNIOR" />
+                <span style={{ fontWeight: 600 }}>Junior (Joven)</span>
+              </div>
+              <span style={{ fontSize: 11, color: "var(--text-muted)", paddingLeft: 24 }}>
+                Saldo personal, límites y micro-learning.
+              </span>
+            </label>
+          </div>
+        </div>
+        <div className="field">
           <label className="label" htmlFor="name">
             Nombre
           </label>

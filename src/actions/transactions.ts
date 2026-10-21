@@ -18,6 +18,7 @@ export async function saveTransaction(_prev: ActionState, formData: FormData): P
     categoryId: formData.get("categoryId"),
     paymentMethod: formData.get("paymentMethod"),
     isRecurring: formData.get("isRecurring") === "on",
+    isImpulsive: formData.get("isImpulsive") === "true",
     tags: String(formData.get("tags") ?? "")
       .split(",")
       .map((t) => t.trim().toLowerCase())

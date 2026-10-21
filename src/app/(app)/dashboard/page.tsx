@@ -21,6 +21,10 @@ import {
   getWeeklyTrend,
   getRandomTip,
   getBudgets,
+  getExtendedDashboardMetrics,
+  CategoryTotal,
+  GoalDTO,
+  TransactionDTO,
 } from "@/lib/analytics";
 import { generateInsights } from "@/lib/insights";
 import { formatDate, formatMoney, formatPercent } from "@/lib/format";
@@ -35,7 +39,7 @@ export const metadata: Metadata = {
 
 export default async function DashboardPage() {
   const user = await getCurrentUser();
-  const [categories, month, week, weeklyTrend, goals, recentTx, randomTip, budgets] = await Promise.all([
+  const [categories, month, week, weeklyTrend, goals, recentTx, randomTip, budgets, ext] = await Promise.all([
     getCategories(user.id),
     getMonthSummary(user.id),
     getWeekComparison(user.id),
@@ -44,6 +48,7 @@ export default async function DashboardPage() {
     getRecentTransactions(user.id, 6),
     getRandomTip(),
     getBudgets(user.id),
+    getExtendedDashboardMetrics(user.id),
   ]);
 
   const insights = generateInsights({
@@ -55,21 +60,249 @@ export default async function DashboardPage() {
   });
 
   const featuredInsight = insights[0];
+  const isSenior = user.role === "SENIOR";
 
   return (
     <div>
       {/* Encabezado */}
       <div className="page-header">
         <div>
-          <h1>
-            Hola, <span className="gradient-text">{user.name.split(" ")[0]}</span> 👋
-          </h1>
-          <p>Este es el estado de tus finanzas personales este mes.</p>
+          <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 4 }}>
+            <h1>
+              Hola, <span className="gradient-text">{user.name.split(" ")[0]}</span> 👋
+            </h1>
+            <span
+              style={{
+                fontSize: 11,
+                padding: "3px 8px",
+                borderRadius: 12,
+                background: isSenior ? "rgba(59, 130, 246, 0.15)" : "rgba(16, 185, 129, 0.15)",
+                color: isSenior ? "#60a5fa" : "#34d399",
+                fontWeight: 600,
+              }}
+            >
+              {isSenior ? "Perfil Senior · Acudiente" : "Perfil Junior · Joven"}
+            </span>
+          </div>
+          <p>
+            {isSenior
+              ? "Supervisión de finanzas familiares, asignación de presupuestos e inversiones."
+              : ext.senior
+              ? `Acompañado por tu acudiente: ${ext.senior.name}. Aprende a gestionar tus límites.`
+              : "Controla tu saldo personal, respeta tus límites y haz crecer tu Score BeHu."}
+          </p>
         </div>
         <div className="row">
-          <AddTransactionButton categories={categories} />
+          <AddTransactionButton categories={categories} dailyLimit={ext.dailyLimit} />
         </div>
       </div>
+
+      {/* Tarjeta de Score BeHu y Salud Financiera (HU-08) */}
+      <div
+        className="card animate-in"
+        style={{
+          marginBottom: 20,
+          background: "linear-gradient(135deg, rgba(17, 23, 38, 0.9), rgba(15, 20, 34, 0.95))",
+          border: "1px solid var(--border-strong)",
+          display: "grid",
+          gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
+          gap: 20,
+          alignItems: "center",
+        }}
+      >
+        <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
+          <div
+            style={{
+              width: 58,
+              height: 58,
+              borderRadius: "50%",
+              background: `conic-gradient(${ext.scoreColor} ${ext.dynamicScore * 3.6}deg, var(--surface) 0deg)`,
+              display: "grid",
+              placeItems: "center",
+              flexShrink: 0,
+              padding: 4,
+            }}
+          >
+            <div
+              style={{
+                width: "100%",
+                height: "100%",
+                borderRadius: "50%",
+                background: "var(--bg-elevated)",
+                display: "grid",
+                placeItems: "center",
+                fontWeight: 800,
+                fontSize: 16,
+                color: ext.scoreColor,
+              }}
+            >
+              {ext.dynamicScore}
+            </div>
+          </div>
+          <div>
+            <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 2 }}>
+              <h3 style={{ fontSize: 16 }}>Score BeHu de Salud Financiera</h3>
+              <span
+                style={{
+                  fontSize: 11,
+                  padding: "2px 7px",
+                  borderRadius: 8,
+                  background: "var(--surface)",
+                  color: ext.scoreColor,
+                  fontWeight: 600,
+                }}
+              >
+                {ext.scoreTier === "excellent" ? "Excelente" : ext.scoreTier === "good" ? "Saludable" : "En riesgo"}
+              </span>
+            </div>
+            <p style={{ fontSize: 12.5, color: "var(--text-muted)", lineHeight: 1.4 }}>
+              {isSenior
+                ? "Basado en tu diversificación, ahorro constante y monitoreo del presupuesto del hogar."
+                : "Tus buenos hábitos de ahorro y evitar gastos impulsivos construyen tu historial crediticio a futuro."}
+            </p>
+          </div>
+        </div>
+
+        {/* Sección de Saldo Disponible vs Congelado (HU-06) */}
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "1fr 1fr",
+            gap: 12,
+            padding: "10px 14px",
+            background: "var(--surface)",
+            borderRadius: "var(--radius-sm)",
+            border: "1px solid var(--border)",
+          }}
+        >
+          <div>
+            <span style={{ fontSize: 11, color: "var(--text-dim)", textTransform: "uppercase" }}>
+              Saldo Disponible (Gasto)
+            </span>
+            <div style={{ fontSize: 18, fontWeight: 700, color: "var(--text)" }}>
+              {formatMoney(ext.availableBalance, user.currency)}
+            </div>
+          </div>
+          <div>
+            <span style={{ fontSize: 11, color: "var(--text-dim)", textTransform: "uppercase" }}>
+              Congelado en Metas (HU-06)
+            </span>
+            <div style={{ fontSize: 18, fontWeight: 700, color: "var(--primary)" }}>
+              {formatMoney(ext.frozenInGoals, user.currency)}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Para perfil Junior: Panel Exclusivo de Límites de Gasto (HU-04) */}
+      {!isSenior && (
+        <div className="card animate-in" style={{ marginBottom: 20 }}>
+          <div className="row-between" style={{ marginBottom: 12 }}>
+            <div>
+              <h3 style={{ fontSize: 15 }}>Tus Límites de Gasto Asignados (HU-04)</h3>
+              <p style={{ fontSize: 12.5, color: "var(--text-muted)" }}>
+                Monitoreo activo para evitar compras impulsivas y mantener tu consumo responsable.
+              </p>
+            </div>
+            <Link href="/learn" className="btn btn-secondary btn-sm">
+              <Lightbulb size={14} /> Micro-Learning
+            </Link>
+          </div>
+
+          <div className="grid-2">
+            {/* Límite Semanal */}
+            <div
+              style={{
+                padding: 14,
+                background: "var(--bg)",
+                borderRadius: "var(--radius-sm)",
+                border: "1px solid var(--border)",
+              }}
+            >
+              <div className="row-between" style={{ marginBottom: 6, fontSize: 13 }}>
+                <span className="muted">Consumo Semanal</span>
+                <span style={{ fontWeight: 600 }}>
+                  {formatMoney(ext.thisWeekExpense, user.currency)} /{" "}
+                  {formatMoney(ext.weeklyLimit ?? 200, user.currency)}
+                </span>
+              </div>
+              <div style={{ height: 6, background: "var(--surface)", borderRadius: 3, overflow: "hidden" }}>
+                <div
+                  style={{
+                    height: "100%",
+                    width: `${Math.min(100, Math.round((ext.thisWeekExpense / (ext.weeklyLimit ?? 200)) * 100))}%`,
+                    background:
+                      ext.thisWeekExpense > (ext.weeklyLimit ?? 200)
+                        ? "var(--danger)"
+                        : ext.thisWeekExpense > (ext.weeklyLimit ?? 200) * 0.8
+                        ? "var(--warning)"
+                        : "var(--success)",
+                  }}
+                />
+              </div>
+            </div>
+
+            {/* Límite Mensual */}
+            <div
+              style={{
+                padding: 14,
+                background: "var(--bg)",
+                borderRadius: "var(--radius-sm)",
+                border: "1px solid var(--border)",
+              }}
+            >
+              <div className="row-between" style={{ marginBottom: 6, fontSize: 13 }}>
+                <span className="muted">Consumo Mensual</span>
+                <span style={{ fontWeight: 600 }}>
+                  {formatMoney(ext.thisMonthExpense, user.currency)} /{" "}
+                  {formatMoney(ext.monthlyLimit ?? 600, user.currency)}
+                </span>
+              </div>
+              <div style={{ height: 6, background: "var(--surface)", borderRadius: 3, overflow: "hidden" }}>
+                <div
+                  style={{
+                    height: "100%",
+                    width: `${Math.min(100, Math.round((ext.thisMonthExpense / (ext.monthlyLimit ?? 600)) * 100))}%`,
+                    background:
+                      ext.thisMonthExpense > (ext.monthlyLimit ?? 600)
+                        ? "var(--danger)"
+                        : ext.thisMonthExpense > (ext.monthlyLimit ?? 600) * 0.8
+                        ? "var(--warning)"
+                        : "var(--primary)",
+                  }}
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Para perfil Senior: Tarjeta Rápida de Gestión Familiar (HU-02) */}
+      {isSenior && (
+        <div
+          className="card animate-in"
+          style={{
+            marginBottom: 20,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            flexWrap: "wrap",
+            gap: 12,
+            background: "rgba(59, 130, 246, 0.05)",
+            border: "1px solid rgba(59, 130, 246, 0.2)",
+          }}
+        >
+          <div>
+            <h4 style={{ fontSize: 15, marginBottom: 2 }}>Módulo de Gestión Familiar</h4>
+            <p style={{ fontSize: 13, color: "var(--text-muted)" }}>
+              Tienes <strong>{ext.juniorsCount} cuenta(s) Junior</strong> vinculada(s) para asignar presupuesto y monitorear límites.
+            </p>
+          </div>
+          <Link href="/family" className="btn btn-primary btn-sm">
+            Ver cuentas Junior y asignar dinero <ArrowRight size={14} />
+          </Link>
+        </div>
+      )}
 
       {/* Tarjeta de consejo principal / recomendación activa */}
       {featuredInsight && (
@@ -81,15 +314,15 @@ export default async function DashboardPage() {
             <h4>{featuredInsight.title}</h4>
             <p>{featuredInsight.body}</p>
           </div>
-          <Link href="/insights" className="btn btn-sm btn-ghost" style={{ alignSelf: "center" }}>
-            Ver análisis <ArrowRight size={14} />
+          <Link href="/assistant" className="btn btn-sm btn-ghost" style={{ alignSelf: "center" }}>
+            Consultar a BeHu Mini <ArrowRight size={14} />
           </Link>
         </div>
       )}
 
       {/* Fila de Estadísticas Clave */}
       <div className="grid grid-4 animate-in">
-        {/* Balance */}
+        {/* Balance Global */}
         <div className="card stat-card">
           <div className="row-between">
             <span className="stat-label">
@@ -198,11 +431,11 @@ export default async function DashboardPage() {
           {month.byCategory.length > 0 ? (
             <>
               <CategoryDonut
-                data={month.byCategory.map((c) => ({ name: c.name, color: c.color, total: c.total }))}
+                data={month.byCategory.map((c: CategoryTotal) => ({ name: c.name, color: c.color, total: c.total }))}
                 currency={user.currency}
               />
               <div className="stack" style={{ marginTop: 14, maxHeight: 150, overflowY: "auto" }}>
-                {month.byCategory.slice(0, 4).map((c) => (
+                {month.byCategory.slice(0, 4).map((c: CategoryTotal) => (
                   <div key={c.id} className="row-between" style={{ fontSize: 13 }}>
                     <div className="row">
                       <span className="legend-dot" style={{ background: c.color }} />
@@ -242,7 +475,7 @@ export default async function DashboardPage() {
 
           {goals.length > 0 ? (
             <div className="stack">
-              {goals.slice(0, 3).map((g) => (
+              {goals.slice(0, 3).map((g: GoalDTO) => (
                 <div key={g.id} className="card" style={{ padding: 14, background: "var(--surface-strong)" }}>
                   <div className="row-between">
                     <div className="row">
@@ -286,7 +519,7 @@ export default async function DashboardPage() {
 
           {recentTx.length > 0 ? (
             <div className="tx-list">
-              {recentTx.map((tx) => (
+              {recentTx.map((tx: TransactionDTO) => (
                 <div key={tx.id} className="tx-item">
                   <CategoryIcon icon={tx.category.icon} color={tx.category.color} size="sm" />
                   <div className="info">

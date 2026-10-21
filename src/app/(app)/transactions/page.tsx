@@ -42,7 +42,7 @@ export default async function TransactionsPage({ searchParams }: Props) {
           <p>Registra, edita y revisa cada uno de tus gastos e ingresos con todo detalle.</p>
         </div>
         <div className="row">
-          <AddTransactionButton categories={categories} />
+          <AddTransactionButton categories={categories} dailyLimit={user.dailyLimit} />
         </div>
       </div>
 
@@ -133,6 +133,20 @@ export default async function TransactionsPage({ searchParams }: Props) {
                         {tx.isRecurring && (
                           <span className="badge" style={{ marginLeft: 6, fontSize: 10 }}>
                             Recurrente
+                          </span>
+                        )}
+                        {tx.isImpulsive && (
+                          <span
+                            className="badge"
+                            style={{
+                              marginLeft: 6,
+                              fontSize: 10,
+                              background: "rgba(245, 158, 11, 0.15)",
+                              color: "var(--warning)",
+                              borderColor: "rgba(245, 158, 11, 0.3)",
+                            }}
+                          >
+                            ⚠️ Gasto Impulsivo
                           </span>
                         )}
                       </div>

@@ -18,12 +18,29 @@ export const getCurrentUser = cache(async () => {
   const { userId } = await verifySession();
   const user = await prisma.user.findUnique({
     where: { id: userId },
-    select: { id: true, name: true, email: true, currency: true, monthlyIncome: true },
+    select: {
+      id: true,
+      name: true,
+      email: true,
+      role: true,
+      currency: true,
+      monthlyIncome: true,
+      dailyLimit: true,
+      weeklyLimit: true,
+      monthlyLimit: true,
+      score: true,
+      badges: true,
+      completedLessons: true,
+      seniorId: true,
+    },
   });
   if (!user) redirect("/login");
   return {
     ...user,
     monthlyIncome: user.monthlyIncome ? Number(user.monthlyIncome) : null,
+    dailyLimit: user.dailyLimit ? Number(user.dailyLimit) : null,
+    weeklyLimit: user.weeklyLimit ? Number(user.weeklyLimit) : null,
+    monthlyLimit: user.monthlyLimit ? Number(user.monthlyLimit) : null,
   };
 });
 

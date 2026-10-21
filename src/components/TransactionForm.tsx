@@ -16,14 +16,18 @@ function localToday() {
 function TransactionForm({
   categories,
   initial,
+  dailyLimit,
   onDone,
 }: {
   categories: CategoryDTO[];
   initial?: TransactionDTO;
+  dailyLimit?: number | null;
   onDone: (message: string) => void;
 }) {
   const [state, action, pending] = useActionState(saveTransaction, undefined);
   const [type, setType] = useState<"EXPENSE" | "INCOME">(initial?.type ?? "EXPENSE");
+  const [impulseAlert, setImpulseAlert] = useState<{ amount: number; limit: number } | null>(null);
+  const [impulseConfirmed, setImpulseConfirmed] = useState(false);
   useOnSuccess(state, onDone);
   const visible = categories.filter((c) => c.type === type);
 
@@ -168,8 +172,71 @@ function TransactionForm({
           Es un movimiento recurrente (suscripción, alquiler, nómina…)
         </label>
 
+        {/* Alerta interactiva de Gasto Impulsivo (HU-07) */}
+        {impulseAlert && (
+          <div
+            style={{
+              padding: 14,
+              borderRadius: "var(--radius)",
+              background: "rgba(245, 158, 11, 0.12)",
+              border: "1px solid rgba(245, 158, 11, 0.35)",
+              margin: "12px 0",
+            }}
+          >
+            <div style={{ display: "flex", alignItems: "center", gap: 8, color: "var(--warning)", fontWeight: 600, fontSize: 13 }}>
+              <span>⚠️</span> Alerta de Detección de Gasto Impulsivo (HU-07)
+            </div>
+            <p style={{ fontSize: 12.5, color: "var(--text-muted)", margin: "8px 0 12px" }}>
+              El monto ingresado (<strong>${impulseAlert.amount}</strong>) supera tu límite diario sugerido de{" "}
+              <strong>${impulseAlert.limit}</strong>. ¿Es una compra planificada o podrías postergarla?
+            </p>
+            <div style={{ display: "flex", gap: 8 }}>
+              <button
+                type="button"
+                className="btn btn-secondary btn-sm"
+                onClick={() => setImpulseAlert(null)}
+              >
+                Cancelar compra
+              </button>
+              <button
+                type="button"
+                className="btn btn-warning btn-sm"
+                onClick={() => {
+                  setImpulseConfirmed(true);
+                  setImpulseAlert(null);
+                  // Disparar submit
+                  setTimeout(() => {
+                    const btn = document.getElementById("tx-submit") as HTMLButtonElement;
+                    btn?.click();
+                  }, 50);
+                }}
+              >
+                Confirmar de todas formas
+              </button>
+            </div>
+          </div>
+        )}
+
+        <input type="hidden" name="isImpulsive" value={impulseConfirmed ? "true" : "false"} />
+
         <FormMessage state={state?.ok ? undefined : state} />
-        <button className="btn btn-primary btn-block" disabled={pending} id="tx-submit">
+        <button
+          className="btn btn-primary btn-block"
+          disabled={pending}
+          id="tx-submit"
+          onClick={(e) => {
+            if (type === "EXPENSE" && !impulseConfirmed) {
+              const amountInput = document.getElementById("tx-amount") as HTMLInputElement;
+              const val = Number(amountInput?.value || 0);
+              const limit = dailyLimit ?? 50;
+              if (val > limit) {
+                e.preventDefault();
+                setImpulseAlert({ amount: val, limit });
+                return;
+              }
+            }
+          }}
+        >
           {pending ? "Guardando…" : initial ? "Guardar cambios" : "Registrar movimiento"}
         </button>
       </form>
@@ -177,7 +244,15 @@ function TransactionForm({
   );
 }
 
-export function AddTransactionButton({ categories, label = "Nuevo movimiento" }: { categories: CategoryDTO[]; label?: string }) {
+export function AddTransactionButton({
+  categories,
+  label = "Nuevo movimiento",
+  dailyLimit,
+}: {
+  categories: CategoryDTO[];
+  label?: string;
+  dailyLimit?: number | null;
+}) {
   const [open, setOpen] = useState(false);
   const [toast, showToast] = useToast();
   return (
@@ -190,6 +265,7 @@ export function AddTransactionButton({ categories, label = "Nuevo movimiento" }:
         <Modal title="Nuevo movimiento" onClose={() => setOpen(false)}>
           <TransactionForm
             categories={categories}
+            dailyLimit={dailyLimit}
             onDone={(m) => {
               setOpen(false);
               showToast(m);

@@ -35,6 +35,7 @@ export type TransactionDTO = {
   description: string;
   paymentMethod: "CASH" | "DEBIT_CARD" | "CREDIT_CARD" | "TRANSFER" | "OTHER";
   isRecurring: boolean;
+  isImpulsive: boolean;
   tags: string[];
   notes: string | null;
   category: CategoryDTO;
@@ -66,6 +67,7 @@ function toTransactionDTO(t: TxWithCategory): TransactionDTO {
     description: t.description,
     paymentMethod: t.paymentMethod,
     isRecurring: t.isRecurring,
+    isImpulsive: t.isImpulsive ?? false,
     tags: t.tags,
     notes: t.notes,
     category: toCategoryDTO(t.category),
@@ -398,3 +400,112 @@ export async function getRandomTip() {
 export async function getAllTips() {
   return prisma.tip.findMany({ orderBy: { category: "asc" } });
 }
+
+/* ------------------------------------------------------------------ */
+/* Métricas extendidas para roles Senior y Junior (HU-04, 06, 08)     */
+/* ------------------------------------------------------------------ */
+
+export async function getExtendedDashboardMetrics(userId: string) {
+  const [user, allTx, goals] = await Promise.all([
+    prisma.user.findUnique({
+      where: { id: userId },
+      select: {
+        id: true,
+        role: true,
+        dailyLimit: true,
+        weeklyLimit: true,
+        monthlyLimit: true,
+        score: true,
+        senior: { select: { id: true, name: true, email: true } },
+        juniors: { select: { id: true, name: true } },
+      },
+    }),
+    prisma.transaction.findMany({
+      where: { userId },
+      select: { type: true, amount: true, date: true, isImpulsive: true },
+    }),
+    prisma.savingsGoal.findMany({
+      where: { userId, status: "ACTIVE" },
+      include: { contributions: { select: { amount: true } } },
+    }),
+  ]);
+
+  if (!user) throw new Error("Usuario no encontrado");
+
+  let totalIncome = 0;
+  let totalExpense = 0;
+  let todayExpense = 0;
+  let thisWeekExpense = 0;
+  let thisMonthExpense = 0;
+  let impulsiveCount = 0;
+
+  const t = today();
+  const startDay = new Date(t.getFullYear(), t.getMonth(), t.getDate());
+  const startWk = startOfWeek(t);
+  const startMo = startOfMonth(t);
+
+  for (const tx of allTx) {
+    const amt = Number(tx.amount);
+    const txDate = new Date(tx.date);
+
+    if (tx.type === "INCOME") {
+      totalIncome += amt;
+    } else {
+      totalExpense += amt;
+      if (tx.isImpulsive) impulsiveCount++;
+      if (txDate >= startDay) todayExpense += amt;
+      if (txDate >= startWk) thisWeekExpense += amt;
+      if (txDate >= startMo) thisMonthExpense += amt;
+    }
+  }
+
+  const rawBalance = totalIncome - totalExpense;
+
+  // Dinero congelado en metas de ahorro activas (HU-06)
+  let frozenInGoals = 0;
+  for (const g of goals) {
+    for (const c of g.contributions) {
+      frozenInGoals += Number(c.amount);
+    }
+  }
+
+  // Saldo disponible real descontando ahorros congelados
+  const availableBalance = Math.max(0, rawBalance - frozenInGoals);
+
+  // Score dinámico de salud financiera (HU-08)
+  let dynamicScore = user.score || 75;
+  if (frozenInGoals > 0) dynamicScore = Math.min(100, dynamicScore + 5);
+  if (impulsiveCount > 0) dynamicScore = Math.max(40, dynamicScore - impulsiveCount * 6);
+  if (user.weeklyLimit && thisWeekExpense > Number(user.weeklyLimit)) {
+    dynamicScore = Math.max(35, dynamicScore - 8);
+  }
+
+  let scoreTier: "excellent" | "good" | "fair" = "good";
+  let scoreColor = "var(--primary)";
+  if (dynamicScore >= 80) {
+    scoreTier = "excellent";
+    scoreColor = "var(--success)";
+  } else if (dynamicScore < 60) {
+    scoreTier = "fair";
+    scoreColor = "var(--danger)";
+  }
+
+  return {
+    rawBalance,
+    frozenInGoals,
+    availableBalance,
+    todayExpense,
+    thisWeekExpense,
+    thisMonthExpense,
+    impulsiveCount,
+    dynamicScore,
+    scoreTier,
+    scoreColor,
+    dailyLimit: user.dailyLimit ? Number(user.dailyLimit) : null,
+    weeklyLimit: user.weeklyLimit ? Number(user.weeklyLimit) : null,
+    monthlyLimit: user.monthlyLimit ? Number(user.monthlyLimit) : null,
+    senior: user.senior,
+    juniorsCount: user.juniors.length,
+  };
+}
+
