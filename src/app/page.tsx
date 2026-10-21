@@ -1,4 +1,3 @@
-import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight, BarChart3, Lightbulb, PiggyBank, Receipt, Sparkles, Wallet } from "lucide-react";
 
@@ -77,14 +76,153 @@ export default function Home() {
           </div>
         </section>
 
+        {/* Vista previa minimalista y nativa del dashboard en código */}
         <div className="hero-visual animate-in">
-          <Image
-            src="/hero-dashboard.jpg"
-            alt="Panel de BeHu con balance, métricas y gráficos de control financiero"
-            width={1376}
-            height={768}
-            priority
-          />
+          <div
+            style={{
+              background: "var(--bg-elevated)",
+              border: "1px solid var(--border-strong)",
+              borderRadius: "var(--radius-lg)",
+              padding: "20px 24px 28px",
+              boxShadow: "0 20px 50px -10px rgba(0, 0, 0, 0.6)",
+              textAlign: "left",
+            }}
+          >
+            {/* Barra superior de la ventana */}
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+                paddingBottom: 14,
+                marginBottom: 18,
+                borderBottom: "1px solid var(--border)",
+              }}
+            >
+              <div style={{ display: "flex", gap: 6 }}>
+                <span style={{ width: 10, height: 10, borderRadius: "50%", background: "#ef4444", opacity: 0.8 }} />
+                <span style={{ width: 10, height: 10, borderRadius: "50%", background: "#f59e0b", opacity: 0.8 }} />
+                <span style={{ width: 10, height: 10, borderRadius: "50%", background: "#10b981", opacity: 0.8 }} />
+              </div>
+              <div style={{ fontSize: 11, color: "var(--text-dim)", fontFamily: "monospace" }}>
+                app.behu.com/dashboard
+              </div>
+              <div style={{ width: 40 }} />
+            </div>
+
+            {/* Fila de métricas del mockup */}
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
+                gap: 14,
+                marginBottom: 18,
+              }}
+            >
+              <div
+                style={{
+                  background: "var(--surface)",
+                  padding: "16px",
+                  borderRadius: "var(--radius)",
+                  border: "1px solid var(--border)",
+                }}
+              >
+                <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 6 }}>
+                  <span style={{ fontSize: 12, color: "var(--text-muted)" }}>Saldo disponible</span>
+                  <span style={{ fontSize: 11, color: "var(--success)", fontWeight: 600 }}>+14.2%</span>
+                </div>
+                <div style={{ fontSize: 22, fontWeight: 700, color: "var(--text)" }}>$ 1.840.000</div>
+                <div style={{ fontSize: 11, color: "var(--text-dim)", marginTop: 4 }}>
+                  $ 450.000 reservados en metas
+                </div>
+              </div>
+
+              <div
+                style={{
+                  background: "var(--surface)",
+                  padding: "16px",
+                  borderRadius: "var(--radius)",
+                  border: "1px solid var(--border)",
+                }}
+              >
+                <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 6 }}>
+                  <span style={{ fontSize: 12, color: "var(--text-muted)" }}>Consumo semanal</span>
+                  <span style={{ fontSize: 11, color: "var(--primary)", fontWeight: 600 }}>71%</span>
+                </div>
+                <div style={{ fontSize: 22, fontWeight: 700, color: "var(--text)" }}>$ 142.500</div>
+                <div style={{ height: 6, background: "var(--bg)", borderRadius: 3, marginTop: 8, overflow: "hidden" }}>
+                  <div style={{ width: "71%", height: "100%", background: "var(--primary)" }} />
+                </div>
+              </div>
+
+              <div
+                style={{
+                  background: "var(--surface)",
+                  padding: "16px",
+                  borderRadius: "var(--radius)",
+                  border: "1px solid var(--border)",
+                }}
+              >
+                <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 6 }}>
+                  <span style={{ fontSize: 12, color: "var(--text-muted)" }}>Score BeHu</span>
+                  <span
+                    style={{
+                      fontSize: 10,
+                      padding: "2px 6px",
+                      borderRadius: 6,
+                      background: "rgba(16, 185, 129, 0.15)",
+                      color: "var(--success)",
+                      fontWeight: 600,
+                    }}
+                  >
+                    Excelente
+                  </span>
+                </div>
+                <div style={{ fontSize: 22, fontWeight: 700, color: "var(--success)" }}>88 / 100</div>
+                <div style={{ fontSize: 11, color: "var(--text-dim)", marginTop: 4 }}>
+                  Hábitos y límites bajo control
+                </div>
+              </div>
+            </div>
+
+            {/* Mini fila de movimientos recientes de ejemplo */}
+            <div
+              style={{
+                background: "var(--surface)",
+                padding: "14px 18px",
+                borderRadius: "var(--radius)",
+                border: "1px solid var(--border)",
+                display: "flex",
+                flexDirection: "column",
+                gap: 12,
+              }}
+            >
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                <span style={{ fontSize: 12, fontWeight: 600, textTransform: "uppercase", color: "var(--text-dim)" }}>
+                  Actividad reciente
+                </span>
+                <span style={{ fontSize: 11, color: "var(--primary)" }}>En tiempo real</span>
+              </div>
+
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: 13 }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                  <span style={{ width: 8, height: 8, borderRadius: "50%", background: "var(--warning)" }} />
+                  <span style={{ fontWeight: 500 }}>Supermercado semanal</span>
+                  <span style={{ fontSize: 11, color: "var(--text-dim)" }}>Alimentación</span>
+                </div>
+                <span style={{ fontWeight: 600, color: "var(--text)" }}>− $ 84.000</span>
+              </div>
+
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: 13 }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                  <span style={{ width: 8, height: 8, borderRadius: "50%", background: "var(--success)" }} />
+                  <span style={{ fontWeight: 500 }}>Aporte a Meta: Primer Viaje ✈️</span>
+                  <span style={{ fontSize: 11, color: "var(--text-dim)" }}>Ahorro</span>
+                </div>
+                <span style={{ fontWeight: 600, color: "var(--success)" }}>+ $ 50.000</span>
+              </div>
+            </div>
+          </div>
         </div>
 
         <section className="features">
