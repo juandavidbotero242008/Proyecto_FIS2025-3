@@ -184,7 +184,7 @@ function TransactionForm({
             }}
           >
             <div style={{ display: "flex", alignItems: "center", gap: 8, color: "var(--warning)", fontWeight: 600, fontSize: 13 }}>
-              <span>⚠️</span> Alerta de Detección de Gasto Impulsivo (HU-07)
+              <span>⚠️</span> Alerta de Gasto Inusual
             </div>
             <p style={{ fontSize: 12.5, color: "var(--text-muted)", margin: "8px 0 12px" }}>
               El monto ingresado (<strong>${impulseAlert.amount}</strong>) supera tu límite diario sugerido de{" "}

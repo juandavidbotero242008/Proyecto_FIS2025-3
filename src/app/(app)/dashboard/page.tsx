@@ -185,7 +185,7 @@ export default async function DashboardPage() {
           </div>
           <div>
             <span style={{ fontSize: 11, color: "var(--text-dim)", textTransform: "uppercase" }}>
-              Congelado en Metas (HU-06)
+              Ahorro Reservado en Metas
             </span>
             <div style={{ fontSize: 18, fontWeight: 700, color: "var(--primary)" }}>
               {formatMoney(ext.frozenInGoals, user.currency)}
@@ -194,12 +194,12 @@ export default async function DashboardPage() {
         </div>
       </div>
 
-      {/* Para perfil Junior: Panel Exclusivo de Límites de Gasto (HU-04) */}
+      {/* Para perfil Junior: Panel Exclusivo de Límites de Gasto */}
       {!isSenior && (
         <div className="card animate-in" style={{ marginBottom: 20 }}>
           <div className="row-between" style={{ marginBottom: 12 }}>
             <div>
-              <h3 style={{ fontSize: 15 }}>Tus Límites de Gasto Asignados (HU-04)</h3>
+              <h3 style={{ fontSize: 15 }}>Tus Límites de Gasto</h3>
               <p style={{ fontSize: 12.5, color: "var(--text-muted)" }}>
                 Monitoreo activo para evitar compras impulsivas y mantener tu consumo responsable.
               </p>

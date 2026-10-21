@@ -42,41 +42,43 @@ export default function LoginForm() {
           <LogIn size={18} /> {pending ? "Entrando…" : "Iniciar sesión"}
         </button>
       </form>
-      <div className="demo-hint" style={{ marginTop: 20 }}>
-        <div style={{ fontWeight: 600, marginBottom: 8, fontSize: 12, color: "var(--text)" }}>
-          Acceso rápido por perfil (HU-01):
+      {process.env.NODE_ENV === "development" && (
+        <div className="demo-hint" style={{ marginTop: 20 }}>
+          <div style={{ fontWeight: 600, marginBottom: 8, fontSize: 12, color: "var(--text)" }}>
+            Acceso de prueba (modo desarrollo):
+          </div>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
+            <button
+              type="button"
+              className="btn btn-secondary btn-sm"
+              onClick={() => {
+                const emailInput = document.getElementById("email") as HTMLInputElement;
+                const passInput = document.getElementById("password") as HTMLInputElement;
+                if (emailInput && passInput) {
+                  emailInput.value = "demo@behu.app";
+                  passInput.value = "Demo1234";
+                }
+              }}
+            >
+              👨‍👩‍👧 Perfil Senior
+            </button>
+            <button
+              type="button"
+              className="btn btn-secondary btn-sm"
+              onClick={() => {
+                const emailInput = document.getElementById("email") as HTMLInputElement;
+                const passInput = document.getElementById("password") as HTMLInputElement;
+                if (emailInput && passInput) {
+                  emailInput.value = "estudiante@prueba.com";
+                  passInput.value = "Prueba123";
+                }
+              }}
+            >
+              🎓 Perfil Junior
+            </button>
+          </div>
         </div>
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
-          <button
-            type="button"
-            className="btn btn-secondary btn-sm"
-            onClick={() => {
-              const emailInput = document.getElementById("email") as HTMLInputElement;
-              const passInput = document.getElementById("password") as HTMLInputElement;
-              if (emailInput && passInput) {
-                emailInput.value = "demo@behu.app";
-                passInput.value = "Demo1234";
-              }
-            }}
-          >
-            👨‍👩‍👧 Perfil Senior
-          </button>
-          <button
-            type="button"
-            className="btn btn-secondary btn-sm"
-            onClick={() => {
-              const emailInput = document.getElementById("email") as HTMLInputElement;
-              const passInput = document.getElementById("password") as HTMLInputElement;
-              if (emailInput && passInput) {
-                emailInput.value = "estudiante@prueba.com";
-                passInput.value = "Prueba123";
-              }
-            }}
-          >
-            🎓 Perfil Junior
-          </button>
-        </div>
-      </div>
+      )}
       <p className="switch">
         ¿No tienes cuenta? <Link href="/register">Regístrate</Link>
       </p>

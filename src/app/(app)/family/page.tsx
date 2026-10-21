@@ -101,7 +101,7 @@ export default async function FamilyPage() {
           <ShieldCheck size={24} />
         </div>
         <div>
-          <h3 style={{ fontSize: 15, marginBottom: 2 }}>Módulo Exclusivo para Perfiles Senior (HU-02 / HU-03)</h3>
+          <h3 style={{ fontSize: 15, marginBottom: 2 }}>Panel de Control y Acompañamiento Familiar</h3>
           <p style={{ fontSize: 13, color: "var(--text-muted)" }}>
             Como acudiente principal, las recargas de presupuesto se descuentan de tu balance y se transfieren a la cuenta de tus dependientes con trazabilidad completa.
           </p>

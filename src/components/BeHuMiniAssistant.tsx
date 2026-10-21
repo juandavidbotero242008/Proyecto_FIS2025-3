@@ -114,7 +114,7 @@ export default function BeHuMiniAssistant({ ctx }: { ctx: AssistantContext }) {
           </div>
           <div>
             <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-              <h3 style={{ fontSize: 15, margin: 0 }}>BeHu Mini Assistant (HU-05)</h3>
+              <h3 style={{ fontSize: 15, margin: 0 }}>BeHu Mini · Asistente IA</h3>
               <span
                 style={{
                   fontSize: 10,
@@ -395,7 +395,7 @@ function generateAIResponse(query: string, ctx: AssistantContext): Message {
       text: `🎯 Asesoría de Metas para Perfil Junior:\n\nActualmente tienes ${formatMoney(
         ctx.frozenInGoals,
         ctx.currency
-      )} protegidos y congelados en tus metas de ahorro (HU-06).`,
+      )} protegidos y reservados en tus metas de ahorro.`,
       tips: [
         `Abona el 20% de cada presupuesto que recibas antes de empezar a gastar.`,
         `Al tener el saldo congelado en BeHu, previenes compras impulsivas cuando sales con amigos.`,
@@ -411,7 +411,7 @@ function generateAIResponse(query: string, ctx: AssistantContext): Message {
     return {
       id: String(Date.now()),
       sender: "assistant",
-      text: `⚖️ Control de Límites de Gasto (HU-04):\n\nEsta semana has gastado ${formatMoney(
+      text: `⚖️ Control de Límites de Gasto:\n\nEsta semana has gastado ${formatMoney(
         ctx.thisWeekExpense,
         ctx.currency
       )} de tu límite de ${formatMoney(weeklyLimit, ctx.currency)}.`,

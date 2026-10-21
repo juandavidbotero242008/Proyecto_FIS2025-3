@@ -25,7 +25,7 @@ export function LinkJuniorModal() {
     <div className="modal-backdrop" onClick={() => setOpen(false)}>
       <div className="modal" onClick={(e) => e.stopPropagation()}>
         <div className="modal-header">
-          <h2>Vincular Cuenta Junior (HU-02)</h2>
+          <h2>Vincular Cuenta Junior</h2>
           <button className="btn btn-ghost btn-sm btn-icon" onClick={() => setOpen(false)}>
             <X size={18} />
           </button>
@@ -168,7 +168,7 @@ export function UnlinkConfirmButton({ junior }: { junior: { id: string; name: st
     <div className="modal-backdrop" onClick={() => setConfirming(false)}>
       <div className="modal" onClick={(e) => e.stopPropagation()}>
         <div className="modal-header">
-          <h2>¿Desvincular a {junior.name}? (HU-03)</h2>
+          <h2>¿Desvincular a {junior.name}?</h2>
           <button className="btn btn-ghost btn-sm btn-icon" onClick={() => setConfirming(false)}>
             <X size={18} />
           </button>

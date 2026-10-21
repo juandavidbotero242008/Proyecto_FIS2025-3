@@ -59,7 +59,7 @@ export default async function GoalsPage() {
         <div style={{ marginTop: 12, display: "flex", alignItems: "center", gap: 8, fontSize: 12, color: "var(--text-muted)" }}>
           <span style={{ color: "var(--primary)" }}>🔒</span>
           <span>
-            <strong>Protección activa (HU-06):</strong> Los {formatMoney(totalSaved, user.currency)} ahorrados están congelados de tu saldo disponible diario para protegerlos de gastos impulsivos.
+            <strong>Ahorro protegido:</strong> Los {formatMoney(totalSaved, user.currency)} ahorrados están reservados y separados de tu saldo disponible diario para protegerlos de compras impulsivas.
           </span>
         </div>
       </div>
