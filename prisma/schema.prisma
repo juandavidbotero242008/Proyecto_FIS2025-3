@@ -1,0 +1,142 @@
+// Esquema de base de datos de BeHu (PostgreSQL)
+// Documentación: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DATABASE_URL_UNPOOLED")
+}
+
+enum TransactionType {
+  EXPENSE
+  INCOME
+}
+
+enum PaymentMethod {
+  CASH
+  DEBIT_CARD
+  CREDIT_CARD
+  TRANSFER
+  OTHER
+}
+
+/// Clasificación para la regla 50/30/20
+enum CategoryGroup {
+  NEED   // Necesidades (50 %)
+  WANT   // Deseos (30 %)
+  SAVING // Ahorro / deuda (20 %)
+  INCOME // Categorías de ingreso
+}
+
+enum GoalStatus {
+  ACTIVE
+  COMPLETED
+  CANCELLED
+}
+
+model User {
+  id            String        @id @default(uuid())
+  email         String        @unique
+  passwordHash  String        @map("password_hash")
+  name          String
+  currency      String        @default("USD")
+  monthlyIncome Decimal?      @map("monthly_income") @db.Decimal(12, 2)
+  createdAt     DateTime      @default(now()) @map("created_at")
+  transactions  Transaction[]
+  categories    Category[]
+  goals         SavingsGoal[]
+  budgets       Budget[]
+
+  @@map("users")
+}
+
+model Category {
+  id           String        @id @default(uuid())
+  /// null = categoría global (disponible para todos los usuarios)
+  userId       String?       @map("user_id")
+  name         String
+  color        String
+  icon         String
+  group        CategoryGroup @default(WANT)
+  type         TransactionType @default(EXPENSE)
+  user         User?         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  transactions Transaction[]
+  budgets      Budget[]
+
+  @@index([userId])
+  @@map("categories")
+}
+
+model Transaction {
+  id            String          @id @default(uuid())
+  userId        String          @map("user_id")
+  categoryId    String          @map("category_id")
+  type          TransactionType
+  amount        Decimal         @db.Decimal(12, 2)
+  date          DateTime        @db.Date
+  description   String
+  paymentMethod PaymentMethod   @default(DEBIT_CARD) @map("payment_method")
+  isRecurring   Boolean         @default(false) @map("is_recurring")
+  tags          String[]        @default([])
+  notes         String?
+  createdAt     DateTime        @default(now()) @map("created_at")
+  user          User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  category      Category        @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+
+  @@index([userId, date])
+  @@map("transactions")
+}
+
+model SavingsGoal {
+  id            String             @id @default(uuid())
+  userId        String             @map("user_id")
+  name          String
+  emoji         String             @default("🎯")
+  targetAmount  Decimal            @map("target_amount") @db.Decimal(12, 2)
+  deadline      DateTime?          @db.Date
+  status        GoalStatus         @default(ACTIVE)
+  createdAt     DateTime           @default(now()) @map("created_at")
+  user          User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  contributions GoalContribution[]
+
+  @@index([userId])
+  @@map("savings_goals")
+}
+
+model GoalContribution {
+  id     String      @id @default(uuid())
+  goalId String      @map("goal_id")
+  amount Decimal     @db.Decimal(12, 2)
+  date   DateTime    @db.Date
+  note   String?
+  goal   SavingsGoal @relation(fields: [goalId], references: [id], onDelete: Cascade)
+
+  @@index([goalId])
+  @@map("goal_contributions")
+}
+
+model Budget {
+  id           String   @id @default(uuid())
+  userId       String   @map("user_id")
+  categoryId   String   @map("category_id")
+  monthlyLimit Decimal  @map("monthly_limit") @db.Decimal(12, 2)
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  category     Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, categoryId])
+  @@map("budgets")
+}
+
+/// Consejos generales de educación financiera
+model Tip {
+  id       String @id @default(uuid())
+  title    String
+  body     String
+  category String
+
+  @@map("tips")
+}
