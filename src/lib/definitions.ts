@@ -23,9 +23,10 @@ export const RegisterSchema = z.object({
 });
 
 export const LinkJuniorSchema = z.object({
-  name: z.string().trim().min(2, { error: "El nombre debe tener al menos 2 caracteres." }),
+  mode: z.enum(["LINK_EXISTING", "CREATE_NEW"]).default("LINK_EXISTING"),
   email: z.email({ error: "Introduce un email válido." }).trim().toLowerCase(),
-  password: z.string().min(6, { error: "Mínimo 6 caracteres." }),
+  name: z.string().trim().min(2, { error: "El nombre debe tener al menos 2 caracteres." }).optional(),
+  password: z.string().min(6, { error: "Mínimo 6 caracteres." }).optional(),
   initialBudget: z.coerce.number().min(0, { error: "El presupuesto no puede ser negativo." }),
   dailyLimit: z.coerce.number().min(0).optional(),
   weeklyLimit: z.coerce.number().min(0).optional(),

@@ -12,10 +12,13 @@ export async function linkJunior(_prev: ActionState, formData: FormData): Promis
     return { message: "Solo los usuarios Senior pueden vincular cuentas Junior." };
   }
 
+  const mode = formData.get("mode") === "CREATE_NEW" ? "CREATE_NEW" : "LINK_EXISTING";
+
   const parsed = LinkJuniorSchema.safeParse({
-    name: formData.get("name"),
+    mode,
     email: formData.get("email"),
-    password: formData.get("password"),
+    name: formData.get("name") || undefined,
+    password: formData.get("password") || undefined,
     initialBudget: formData.get("initialBudget") || 0,
     dailyLimit: formData.get("dailyLimit") || undefined,
     weeklyLimit: formData.get("weeklyLimit") || undefined,
@@ -26,10 +29,11 @@ export async function linkJunior(_prev: ActionState, formData: FormData): Promis
     return { errors: fieldErrors(parsed.error) };
   }
 
-  const { name, email, password, initialBudget, dailyLimit, weeklyLimit, monthlyLimit } = parsed.data;
+  const { email, name, password, initialBudget, dailyLimit, weeklyLimit, monthlyLimit } = parsed.data;
 
-  // Verificar si ya existe usuario con este email
+  // 1. Verificar si ya existe usuario con este email
   const existing = await prisma.user.findUnique({ where: { email } });
+
   if (existing) {
     // REGLA 1: Blindaje contra secuestro de cuentas Senior independientes
     if (existing.role === "SENIOR") {
@@ -48,9 +52,7 @@ export async function linkJunior(_prev: ActionState, formData: FormData): Promis
       return { errors: { email: ["Esta cuenta Junior ya está vinculada a otro acudiente."] } };
     }
 
-    // REGLA 3: Es una cuenta Junior existente sin acudiente
-    // En lugar de secuestrar la cuenta directamente, enviamos una solicitud formal (Invitación)
-    // Comprobar si ya tiene una invitación pendiente de este Senior
+    // REGLA 3: Es una cuenta Junior existente sin acudiente -> Enviar solicitud
     const pendingInvitation = await prisma.familyInvitation.findFirst({
       where: {
         seniorId: senior.id,
@@ -85,7 +87,24 @@ export async function linkJunior(_prev: ActionState, formData: FormData): Promis
     };
   }
 
-  // Crear nueva cuenta Junior
+  // 2. Si el correo NO existe en la base de datos:
+  // Si venimos del modo vinculación simple, le indicamos que la cuenta no existe y le damos la opción de crearla
+  if (mode !== "CREATE_NEW") {
+    return {
+      ok: false,
+      message: "NOT_FOUND", // Flag especial para que la UI le pregunte si desea crear la cuenta desde cero
+    };
+  }
+
+  // Si confirmó el modo CREATE_NEW: validamos que haya ingresado nombre y contraseña
+  if (!name || name.length < 2) {
+    return { errors: { name: ["El nombre debe tener al menos 2 caracteres para crear la cuenta."] } };
+  }
+  if (!password || password.length < 6) {
+    return { errors: { password: ["La contraseña debe tener al menos 6 caracteres."] } };
+  }
+
+  // Crear nueva cuenta Junior desde cero
   const passwordHash = await bcrypt.hash(password, 10);
   const newJunior = await prisma.user.create({
     data: {
@@ -102,7 +121,7 @@ export async function linkJunior(_prev: ActionState, formData: FormData): Promis
     },
   });
 
-  // Si tiene presupuesto inicial, descontar del Senior y acreditar al Junior (HU-02)
+  // Si tiene presupuesto inicial, descontar del Senior y acreditar al Junior
   if (initialBudget > 0) {
     await transferBudget(senior.id, senior.name, newJunior.id, newJunior.name, initialBudget);
   }
