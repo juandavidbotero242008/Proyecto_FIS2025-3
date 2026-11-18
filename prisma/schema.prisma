@@ -43,6 +43,12 @@ enum GoalStatus {
   CANCELLED
 }
 
+enum InvitationStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+}
+
 model User {
   id                   String        @id @default(uuid())
   email                String        @unique
@@ -73,6 +79,8 @@ model User {
   categories           Category[]
   goals                SavingsGoal[]
   budgets              Budget[]
+  sentInvitations      FamilyInvitation[] @relation("SentInvitations")
+  receivedInvitations  FamilyInvitation[] @relation("ReceivedInvitations")
 
   @@index([seniorId])
   @@map("users")
@@ -167,4 +175,24 @@ model Tip {
   category String
 
   @@map("tips")
+}
+
+model FamilyInvitation {
+  id            String           @id @default(uuid())
+  seniorId      String           @map("senior_id")
+  juniorId      String           @map("junior_id")
+  initialBudget Decimal          @default(0) @map("initial_budget") @db.Decimal(12, 2)
+  dailyLimit    Decimal?         @map("daily_limit") @db.Decimal(12, 2)
+  weeklyLimit   Decimal?         @map("weekly_limit") @db.Decimal(12, 2)
+  monthlyLimit  Decimal?         @map("monthly_limit") @db.Decimal(12, 2)
+  status        InvitationStatus @default(PENDING)
+  createdAt     DateTime         @default(now()) @map("created_at")
+  updatedAt     DateTime         @updatedAt @map("updated_at")
+
+  senior        User             @relation("SentInvitations", fields: [seniorId], references: [id], onDelete: Cascade)
+  junior        User             @relation("ReceivedInvitations", fields: [juniorId], references: [id], onDelete: Cascade)
+
+  @@index([seniorId])
+  @@index([juniorId])
+  @@map("family_invitations")
 }

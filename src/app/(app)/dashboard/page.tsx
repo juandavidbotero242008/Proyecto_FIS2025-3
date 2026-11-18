@@ -28,6 +28,8 @@ import {
 } from "@/lib/analytics";
 import { generateInsights } from "@/lib/insights";
 import { formatDate, formatMoney, formatPercent } from "@/lib/format";
+import { prisma } from "@/lib/prisma";
+import JuniorInvitationBanner from "@/components/JuniorInvitationBanner";
 import { AddTransactionButton } from "@/components/TransactionForm";
 import { CategoryIcon, Icon } from "@/components/CategoryIcon";
 import { CategoryDonut, WeeklyTrendChart } from "@/components/Charts";
@@ -62,8 +64,28 @@ export default async function DashboardPage() {
   const featuredInsight = insights[0];
   const isSenior = user.role === "SENIOR";
 
+  // Consultar invitaciones pendientes si el usuario es Junior
+  const pendingInvitations = !isSenior
+    ? await prisma.familyInvitation.findMany({
+        where: { juniorId: user.id, status: "PENDING" },
+        include: { senior: { select: { name: true, email: true } } },
+        orderBy: { createdAt: "desc" },
+      })
+    : [];
+
+  const formattedInvitations = pendingInvitations.map((inv) => ({
+    id: inv.id,
+    initialBudget: Number(inv.initialBudget),
+    weeklyLimit: inv.weeklyLimit ? Number(inv.weeklyLimit) : null,
+    senior: inv.senior,
+    currency: user.currency,
+  }));
+
   return (
     <div>
+      {/* Banner de Solicitudes de Vinculación Familiar para perfiles Junior */}
+      {!isSenior && <JuniorInvitationBanner invitations={formattedInvitations} />}
+
       {/* Encabezado */}
       <div className="page-header">
         <div>

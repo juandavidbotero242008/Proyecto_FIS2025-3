@@ -48,25 +48,41 @@ export async function linkJunior(_prev: ActionState, formData: FormData): Promis
       return { errors: { email: ["Esta cuenta Junior ya está vinculada a otro acudiente."] } };
     }
 
-    // REGLA 3: Es una cuenta Junior existente sin acudiente -> Se vincula
-    await prisma.user.update({
-      where: { id: existing.id },
-      data: {
+    // REGLA 3: Es una cuenta Junior existente sin acudiente
+    // En lugar de secuestrar la cuenta directamente, enviamos una solicitud formal (Invitación)
+    // Comprobar si ya tiene una invitación pendiente de este Senior
+    const pendingInvitation = await prisma.familyInvitation.findFirst({
+      where: {
         seniorId: senior.id,
-        dailyLimit: dailyLimit ?? existing.dailyLimit,
-        weeklyLimit: weeklyLimit ?? existing.weeklyLimit,
-        monthlyLimit: monthlyLimit ?? existing.monthlyLimit,
-        // No sobreescribimos su contraseña existente para proteger la privacidad del usuario
+        juniorId: existing.id,
+        status: "PENDING",
       },
     });
 
-    if (initialBudget > 0) {
-      await transferBudget(senior.id, senior.name, existing.id, existing.name, initialBudget);
+    if (pendingInvitation) {
+      return {
+        message: `Ya enviaste una solicitud de vinculación a ${existing.name}. El usuario debe aceptarla desde su panel.`,
+      };
     }
+
+    await prisma.familyInvitation.create({
+      data: {
+        seniorId: senior.id,
+        juniorId: existing.id,
+        initialBudget,
+        dailyLimit: dailyLimit ?? undefined,
+        weeklyLimit: weeklyLimit ?? undefined,
+        monthlyLimit: monthlyLimit ?? undefined,
+        status: "PENDING",
+      },
+    });
 
     revalidatePath("/family");
     revalidatePath("/dashboard");
-    return { ok: true, message: `Cuenta Junior de ${existing.name} vinculada exitosamente.` };
+    return {
+      ok: true,
+      message: `Solicitud de vinculación enviada a ${existing.name}. Se vinculará cuando el usuario acepte la invitación en su cuenta.`,
+    };
   }
 
   // Crear nueva cuenta Junior
@@ -167,6 +183,102 @@ export async function updateJuniorLimits(formData: FormData) {
       weeklyLimit,
       monthlyLimit,
     },
+  });
+
+  revalidatePath("/family");
+  return { ok: true };
+}
+
+/**
+ * Aceptar invitación familiar (Acción ejecutada por el usuario Junior)
+ */
+export async function acceptFamilyInvitation(invitationId: string) {
+  const junior = await getCurrentUser();
+  if (junior.role !== "JUNIOR") {
+    return { ok: false, message: "Solo un usuario Junior puede responder a esta solicitud." };
+  }
+
+  const invitation = await prisma.familyInvitation.findUnique({
+    where: { id: invitationId },
+    include: { senior: true },
+  });
+
+  if (!invitation || invitation.juniorId !== junior.id || invitation.status !== "PENDING") {
+    return { ok: false, message: "La invitación no es válida o ya fue procesada." };
+  }
+
+  // 1. Vincular el Junior con el Senior y configurar los límites pactados
+  await prisma.user.update({
+    where: { id: junior.id },
+    data: {
+      seniorId: invitation.seniorId,
+      dailyLimit: invitation.dailyLimit ?? junior.dailyLimit,
+      weeklyLimit: invitation.weeklyLimit ?? junior.weeklyLimit,
+      monthlyLimit: invitation.monthlyLimit ?? junior.monthlyLimit,
+    },
+  });
+
+  // 2. Marcar invitación como aceptada
+  await prisma.familyInvitation.update({
+    where: { id: invitation.id },
+    data: { status: "ACCEPTED" },
+  });
+
+  // 3. Si tenía presupuesto inicial prometido, transferirlo ahora que aceptó
+  const initialBudgetNum = Number(invitation.initialBudget);
+  if (initialBudgetNum > 0) {
+    await transferBudget(
+      invitation.seniorId,
+      invitation.senior.name,
+      junior.id,
+      junior.name,
+      initialBudgetNum,
+      "Aceptación de vinculación familiar"
+    );
+  }
+
+  revalidatePath("/dashboard");
+  revalidatePath("/family");
+  return { ok: true, message: `Te has unido al grupo familiar de ${invitation.senior.name}.` };
+}
+
+/**
+ * Rechazar invitación familiar (Acción ejecutada por el usuario Junior)
+ */
+export async function rejectFamilyInvitation(invitationId: string) {
+  const junior = await getCurrentUser();
+  if (junior.role !== "JUNIOR") {
+    return { ok: false, message: "Solo un usuario Junior puede responder a esta solicitud." };
+  }
+
+  const invitation = await prisma.familyInvitation.findUnique({
+    where: { id: invitationId },
+  });
+
+  if (!invitation || invitation.juniorId !== junior.id || invitation.status !== "PENDING") {
+    return { ok: false, message: "La invitación no es válida o ya fue procesada." };
+  }
+
+  await prisma.familyInvitation.update({
+    where: { id: invitation.id },
+    data: { status: "REJECTED" },
+  });
+
+  revalidatePath("/dashboard");
+  return { ok: true, message: "Has rechazado la solicitud de vinculación." };
+}
+
+/**
+ * Cancelar invitación enviada (Acción ejecutada por el usuario Senior)
+ */
+export async function cancelFamilyInvitation(invitationId: string) {
+  const senior = await getCurrentUser();
+  if (senior.role !== "SENIOR") {
+    return { ok: false, message: "No autorizado." };
+  }
+
+  await prisma.familyInvitation.deleteMany({
+    where: { id: invitationId, seniorId: senior.id, status: "PENDING" },
   });
 
   revalidatePath("/family");

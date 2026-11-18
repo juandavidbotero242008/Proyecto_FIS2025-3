@@ -29,6 +29,13 @@ export default async function FamilyPage() {
     orderBy: { createdAt: "asc" },
   });
 
+  // Invitaciones pendientes enviadas por este Senior
+  const pendingInvitations = await prisma.familyInvitation.findMany({
+    where: { seniorId: user.id, status: "PENDING" },
+    include: { junior: { select: { name: true, email: true } } },
+    orderBy: { createdAt: "desc" },
+  });
+
   // Calcular métricas para cada Junior
   const sevenDaysAgo = new Date();
   sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
@@ -107,6 +114,38 @@ export default async function FamilyPage() {
           </p>
         </div>
       </div>
+
+      {/* Sección de Invitaciones Pendientes enviadas por el Senior */}
+      {pendingInvitations.length > 0 && (
+        <div className="card" style={{ border: "1px solid rgba(245, 158, 11, 0.3)", background: "rgba(245, 158, 11, 0.05)" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12, fontWeight: 600, color: "var(--warning)" }}>
+            <span>⏳</span> Solicitudes de vinculación enviadas ({pendingInvitations.length})
+          </div>
+          <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+            {pendingInvitations.map((inv) => (
+              <div
+                key={inv.id}
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                  padding: "10px 14px",
+                  borderRadius: "var(--radius)",
+                  background: "var(--surface)",
+                  fontSize: 13,
+                }}
+              >
+                <div>
+                  <strong>{inv.junior.name}</strong> ({inv.junior.email}) — Esperando que el usuario acepte en su panel
+                </div>
+                <div style={{ fontSize: 12, color: "var(--text-dim)" }}>
+                  {Number(inv.initialBudget) > 0 ? `Mesada: ${formatMoney(Number(inv.initialBudget), user.currency)}` : "Sin mesada inicial"}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {juniorMetrics.length === 0 ? (
         <div className="card empty-state" style={{ padding: 48, textAlign: "center" }}>
