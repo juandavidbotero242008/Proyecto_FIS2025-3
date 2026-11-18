@@ -31,18 +31,32 @@ export async function linkJunior(_prev: ActionState, formData: FormData): Promis
   // Verificar si ya existe usuario con este email
   const existing = await prisma.user.findUnique({ where: { email } });
   if (existing) {
-    if (existing.seniorId) {
-      return { errors: { email: ["Esta cuenta ya está vinculada a otro acudiente."] } };
+    // REGLA 1: Blindaje contra secuestro de cuentas Senior independientes
+    if (existing.role === "SENIOR") {
+      return {
+        errors: {
+          email: ["Esta cuenta pertenece a un usuario Senior independiente y no puede ser vinculada como dependiente."],
+        },
+      };
     }
-    // Si ya existe pero no tiene acudiente, vincularlo y convertirlo a JUNIOR
+
+    // REGLA 2: No permitir vincular un Junior que ya pertenece a otro núcleo familiar
+    if (existing.seniorId) {
+      if (existing.seniorId === senior.id) {
+        return { errors: { email: ["Este usuario Junior ya forma parte de tu grupo familiar."] } };
+      }
+      return { errors: { email: ["Esta cuenta Junior ya está vinculada a otro acudiente."] } };
+    }
+
+    // REGLA 3: Es una cuenta Junior existente sin acudiente -> Se vincula
     await prisma.user.update({
       where: { id: existing.id },
       data: {
-        role: "JUNIOR",
         seniorId: senior.id,
         dailyLimit: dailyLimit ?? existing.dailyLimit,
         weeklyLimit: weeklyLimit ?? existing.weeklyLimit,
         monthlyLimit: monthlyLimit ?? existing.monthlyLimit,
+        // No sobreescribimos su contraseña existente para proteger la privacidad del usuario
       },
     });
 
@@ -52,7 +66,7 @@ export async function linkJunior(_prev: ActionState, formData: FormData): Promis
 
     revalidatePath("/family");
     revalidatePath("/dashboard");
-    return { ok: true, message: `Cuenta de ${name} vinculada exitosamente.` };
+    return { ok: true, message: `Cuenta Junior de ${existing.name} vinculada exitosamente.` };
   }
 
   // Crear nueva cuenta Junior
