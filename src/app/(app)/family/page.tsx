@@ -1,9 +1,10 @@
 import { redirect } from "next/navigation";
 import { getCurrentUser } from "@/lib/dal";
 import { prisma } from "@/lib/prisma";
-import { formatMoney } from "@/lib/format";
+import { formatDate, formatMoney, PAYMENT_METHODS } from "@/lib/format";
 import { AssignBudgetModal, LinkJuniorModal, UnlinkConfirmButton } from "@/components/FamilyModals";
-import { AlertCircle, ShieldCheck, Users, Wallet } from "lucide-react";
+import { CategoryIcon } from "@/components/CategoryIcon";
+import { AlertCircle, History, ShieldCheck, Users, Wallet } from "lucide-react";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
@@ -17,13 +18,14 @@ export default async function FamilyPage() {
     redirect("/dashboard");
   }
 
-  // Cuentas Junior vinculadas a este Senior
+  // Cuentas Junior vinculadas a este Senior con su historial detallado de movimientos
   const juniors = await prisma.user.findMany({
     where: { seniorId: user.id },
     include: {
       transactions: {
+        include: { category: true },
         orderBy: { date: "desc" },
-        take: 5,
+        take: 10,
       },
     },
     orderBy: { createdAt: "asc" },
@@ -287,6 +289,75 @@ export default async function FamilyPage() {
                   <span>
                     Mensual: <strong>{j.monthlyLimit ? formatMoney(Number(j.monthlyLimit), user.currency) : "Sin límite"}</strong>
                   </span>
+                </div>
+
+                {/* Historial Detallado de Movimientos del Junior */}
+                <div style={{ paddingTop: 10, borderTop: "1px solid var(--border)" }}>
+                  <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10 }}>
+                    <span style={{ fontSize: 12, fontWeight: 600, color: "var(--text-dim)", textTransform: "uppercase", display: "flex", alignItems: "center", gap: 6 }}>
+                      <History size={14} /> Movimientos Recientes ({j.transactions.length})
+                    </span>
+                    <span style={{ fontSize: 11, color: "var(--text-dim)" }}>Últimos registros</span>
+                  </div>
+
+                  {j.transactions.length === 0 ? (
+                    <div style={{ fontSize: 12.5, color: "var(--text-muted)", padding: "12px 0", textAlign: "center" }}>
+                      Este usuario aún no ha registrado gastos ni ingresos.
+                    </div>
+                  ) : (
+                    <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                      {j.transactions.map((tx) => {
+                        const isIncome = tx.type === "INCOME";
+                        const amt = Number(tx.amount);
+                        return (
+                          <div
+                            key={tx.id}
+                            style={{
+                              display: "flex",
+                              alignItems: "center",
+                              justifyContent: "space-between",
+                              padding: "9px 12px",
+                              borderRadius: "var(--radius-sm)",
+                              background: "var(--bg)",
+                              border: "1px solid var(--border)",
+                              fontSize: 12.5,
+                            }}
+                          >
+                            <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                              <CategoryIcon icon={tx.category.icon} color={tx.category.color} size="sm" />
+                              <div>
+                                <div style={{ fontWeight: 500, color: "var(--text)" }}>{tx.description}</div>
+                                <div style={{ fontSize: 11, color: "var(--text-dim)", display: "flex", gap: 8, alignItems: "center" }}>
+                                  <span>{formatDate(tx.date)}</span>
+                                  <span>•</span>
+                                  <span>{tx.category.name}</span>
+                                  {tx.paymentMethod && (
+                                    <>
+                                      <span>•</span>
+                                      <span>{PAYMENT_METHODS[tx.paymentMethod] || tx.paymentMethod}</span>
+                                    </>
+                                  )}
+                                  {tx.isImpulsive && (
+                                    <span style={{ color: "var(--warning)", fontWeight: 600 }}>⚠️ Inusual</span>
+                                  )}
+                                </div>
+                              </div>
+                            </div>
+
+                            <span
+                              style={{
+                                fontWeight: 600,
+                                color: isIncome ? "var(--success)" : "var(--text)",
+                                whiteSpace: "nowrap",
+                              }}
+                            >
+                              {isIncome ? "+" : "−"} {formatMoney(amt, user.currency)}
+                            </span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
                 </div>
 
                 {/* Acciones */}
