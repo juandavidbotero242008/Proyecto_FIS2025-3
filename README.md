@@ -1,185 +1,90 @@
-# 🌿 BeHu — Gestión Financiera Personal Inteligente
+# 🌿 BeHu — Gestión Financiera Personal y Familiar
 
-> **BeHu** es una aplicación web full-stack de finanzas personales diseñada para brindar claridad, control y bienestar financiero a través de una experiencia minimalista, intuitiva y basada en datos.
-
-Desarrollada con **Next.js 16**, **TypeScript**, **Prisma ORM** y **Neon Serverless PostgreSQL**.
+> **BeHu** es una plataforma web y PWA (*Progressive Web App*) de bienestar financiero diseñada para transformar la relación de las personas con su dinero. Ayuda a estudiantes, jóvenes y familias a entender en qué se van sus ingresos, frenar compras impulsivas, consolidar metas de ahorro y construir hábitos financieros sólidos a través de datos y acompañamiento inteligente.
 
 ---
 
-## 🌟 Características Principales
+## 🎯 ¿Para qué sirve BeHu? (El Problema y la Solución)
 
-- **📊 Dashboard Financiero en Tiempo Real**  
-  Vista consolidada de balance total, ingresos del mes, gastos acumulados y tasa de ahorro con gráficos interactivos de distribución de gastos y evolución mensual.
+La mayoría de las personas no sabe con certeza cuánto gasta por semana ni en qué conceptos se diluye su dinero. Las aplicaciones bancarias tradicionales se limitan a mostrar extractos pasivos de movimientos, pero no educan, no previenen el sobreendeudamiento ni fomentan la disciplina.
 
-- **💳 Registro y Control de Movimientos**  
-  Historial interactivo de ingresos y gastos con filtrado por tipo, categoría, mes y búsqueda por texto. Soporte para múltiples métodos de pago (efectivo, débito, crédito, transferencias).
-
-- **⚖️ Presupuestos y Regla 50/30/20**  
-  Clasificación automática de categorías en **Necesidades (50%)**, **Deseos (30%)** y **Ahorro (20%)**, con barras de progreso que alertan cuando se excede el límite mensual presupuestado.
-
-- **🎯 Metas de Ahorro con Seguimiento**  
-  Crea objetivos de ahorro con montos objetivo, fechas límite y emojis personalizados. Permite registrar abonos graduales con cálculo automático de progreso porcentual.
-
-- **💡 Insights & Educación Financiera**  
-  Motor de recomendaciones que analiza patrones de consumo, detecta gastos desbalanceados y ofrece consejos financieros prácticos y aplicables.
-
-- **🎨 Diseño Minimalista & Sofisticado**  
-  Interfaz limpia, libre de saturación visual o gradientes artificiales, con paleta de tonos neutros, tipografía legible y microinteracciones fluidas.
-
-- **🔐 Autenticación y Seguridad Robusta**  
-  Manejo de sesiones mediante cookies HTTP-only cifradas (JWT con `jose`), contraseñas encriptadas con `bcryptjs`, capa de acceso a datos (*Data Access Layer*) y middleware de protección de rutas.
+**BeHu** soluciona esto combinando:
+1. **Control y Conciencia:** Registro ágil de ingresos y gastos clasificados bajo la **regla presupuestaria 50/30/20** (Necesidades, Deseos y Ahorro).
+2. **Protección del Ahorro (*Saldo Congelado*):** El dinero destinado a una meta se aparta virtualmente del saldo disponible para evitar gastarlo en compras impulsivas.
+3. **Gestión Familiar Colaborativa (Senior vs. Junior):** Un esquema donde los acudientes pueden educar, asignar mesadas y configurar topes de gasto preventivos para jóvenes o estudiantes.
+4. **Gamificación y Educación Práctica:** Módulos de micro-aprendizaje (*quizzes*) y un Score de Salud Financiera que premia las buenas decisiones monetarias.
+5. **Asesoría Contextual:** Asistente interactivo que evalúa los números reales del usuario y ofrece recomendaciones personalizadas sin riesgos de alucinaciones.
 
 ---
 
-## 🛠️ Stack Tecnológico
+## 🌟 Funcionalidades Principales
 
-| Capa | Tecnología | Descripción |
-| :--- | :--- | :--- |
-| **Framework Full-Stack** | [Next.js 16](https://nextjs.org/) | App Router, Server Components y Server Actions para rendimiento óptimo |
-| **Lenguaje** | [TypeScript](https://www.typescriptlang.org/) | Tipado estático de extremo a extremo |
-| **Librería de UI** | [React 19](https://react.dev/) | Componentes interactivos y estados reactivos |
-| **Estilos** | CSS Moderno (Vanilla) | Variables semánticas, diseño responsivo y sin dependencias pesadas |
-| **Base de Datos** | [Neon PostgreSQL](https://neon.tech/) | PostgreSQL Serverless en la nube con Connection Pooling |
-| **ORM** | [Prisma](https://www.prisma.io/) | Modelado de datos, migraciones declarativas y consultas tipadas |
-| **Gráficos** | [Recharts](https://recharts.org/) | Visualizaciones de datos responsivas y accesibles |
-| **Íconos** | [Lucide React](https://lucide.dev/) | Iconografía limpia y coherente |
-| **Despliegue** | [Vercel](https://vercel.com/) | Plataforma de alojamiento optimizada para Next.js |
+### 📊 1. Dashboard Financiero en Tiempo Real
+* Visualización consolidada de balance líquido disponible, ingresos del período, gastos acumulados y capital reservado en metas.
+* Gráficos dinámicos de distribución por categorías y seguimiento del comportamiento financiero mensual.
+* Indicador en tiempo real del **Score BeHu** (salud crediticia y disciplinaria).
 
----
+### 💳 2. Historial de Transacciones Inteligente
+* Registro de movimientos en menos de 10 segundos indicando monto, fecha, categoría, etiquetas y método de pago (Efectivo, Débito, Crédito, Transferencia).
+* Alertas preventivas contra compras impulsivas antes de superar los límites de consumo semanal o diario.
+* Filtros avanzados por mes, tipo de movimiento y categorías.
 
-## 📁 Estructura del Proyecto
+### ⚖️ 3. Presupuestos y Regla 50/30/20
+* Clasificación automática del presupuesto mensual:
+  * **50% Necesidades:** Vivienda, servicios, alimentación básica, transporte.
+  * **30% Deseos:** Restaurantes, ocio, entretenimiento, salidas.
+  * **20% Ahorro e Inversión:** Fondo de emergencia, metas y rendimientos.
+* Monitoreo visual de límites mensuales con alertas preventivas al alcanzar el 80% y 100% del consumo.
 
-```text
-BeHu/
-├── prisma/
-│   ├── schema.prisma        # Definición del modelo relacional de la BD
-│   ├── seed.ts              # Población de categorías y consejos iniciales
-│   ├── create-test-user.ts  # Generador de usuarios de prueba
-│   └── test-neon.ts         # Script de validación de conexión a Neon
-├── public/                  # Recursos estáticos e imágenes
-├── src/
-│   ├── actions/             # Server Actions (Mutaciones seguras de BD)
-│   │   ├── auth.ts          # Registro, login y logout
-│   │   ├── goals.ts         # Creación y aportes a metas
-│   │   ├── settings.ts      # Configuración de perfil y categorías
-│   │   └── transactions.ts  # Creación y eliminación de movimientos
-│   ├── app/                 # Rutas del App Router
-│   │   ├── (app)/           # Rutas privadas autenticadas
-│   │   │   ├── dashboard/   # Panel principal
-│   │   │   ├── transactions/# Historial de transacciones
-│   │   │   ├── budgets/     # Gestión de presupuestos
-│   │   │   ├── goals/       # Metas de ahorro
-│   │   │   ├── insights/    # Diagnóstico y educación financiera
-│   │   │   └── settings/    # Preferencias y perfil
-│   │   ├── (auth)/          # Rutas públicas de autenticación (login / registro)
-│   │   ├── globals.css      # Sistema de diseño y tokens de color
-│   │   ├── layout.tsx       # Layout raíz
-│   │   └── page.tsx         # Landing page de bienvenida
-│   ├── components/          # Componentes reutilizables (Sidebar, Modales, Gráficos)
-│   ├── lib/                 # Lógica de negocio y utilidades del servidor
-│   │   ├── analytics.ts     # Cálculo de balances, gastos y regla 50/30/20
-│   │   ├── dal.ts           # Data Access Layer con verificación de sesión
-│   │   ├── insights.ts      # Reglas heurísticas de diagnóstico financiero
-│   │   ├── prisma.ts        # Cliente singleton de Prisma
-│   │   └── session.ts       # Firma y validación de tokens JWT
-│   └── proxy.ts             # Middleware de control de acceso a rutas privadas
-├── .env.example             # Plantilla de variables de entorno
-├── neon.ts                  # Configuración oficial del servicio Neon
-└── package.json
-```
+### 🎯 4. Metas de Ahorro y "Saldo Congelado"
+* Creación de objetivos con fecha límite y monto deseado (viajes, fondos de emergencia, tecnología).
+* Registro de aportes graduales: el dinero aportado pasa a estar **protegido/congelado**, descontándose del saldo disponible para gastar en el día a día.
+
+### 👨‍👩‍👧 5. Gestión Familiar Multi-Rol (Senior & Junior)
+* **Rol Senior (Padre / Acudiente):** Administra el patrimonio del hogar, vincula dependientes Junior, define límites semanales o diarios y les transfiere mesadas directamente en la plataforma.
+* **Rol Junior (Hijo / Estudiante):** Opera su dinero dentro de márgenes seguros asignados, visualiza su saldo restante para la semana y aprende a administrarse con autonomía.
+
+### 🎓 6. Micro-Learning y Score de Salud Financiera
+* Lecciones concisas sobre finanzas personales, manejo de tarjetas de crédito a una sola cuota y fondos de emergencia.
+* Quizzes interactivos que otorgan insignias y suman puntos directos al **Score de Salud Financiera (0–100)**.
+
+### 🤖 7. BeHu Mini Assistant (Asistente Inteligente)
+* **Sistema Experto Basado en Reglas Sensible al Contexto** (*Context-Aware Rule-Based Expert System*).
+* Adapta su asesoría financiera según el rol del usuario:
+  * **Para el perfil Senior:** Guía en preservación de capital, CDTs de bajo riesgo y fondos de liquidez familiar.
+  * **Para el perfil Junior:** Estrategias para evitar gastos hormiga, cumplir metas a tiempo y respetar límites semanales.
+* **Garantías:** Cero alucinaciones, respuestas deterministas en milisegundos y máxima privacidad (los datos bancarios nunca se envían a APIs de terceros).
 
 ---
 
-## 🚀 Instalación y Puesta en Marcha Local
+## 🛠️ Arquitectura y Tecnologías Empleadas
 
-### Prerrequisitos
-- [Node.js](https://nodejs.org/) v20 o superior
-- Administrador de paquetes `npm` (incluido con Node.js)
-- Instancia activa de PostgreSQL o Neon
-
-### 1. Clonar el Repositorio
-```bash
-git clone https://github.com/juandavidbotero242008/Proyecto_FIS2025-3.git
-cd Proyecto_FIS2025-3
-```
-
-### 2. Instalar Dependencias
-```bash
-npm install
-```
-
-### 3. Configurar Variables de Entorno
-Crea un archivo `.env` en la raíz del proyecto a partir de la plantilla:
-```bash
-cp .env.example .env
-```
-Edita `.env` con las credenciales de tu base de datos:
-```env
-DATABASE_URL="postgresql://USUARIO:CONTRASEÑA@host-pooler/neondb?sslmode=require"
-DATABASE_URL_UNPOOLED="postgresql://USUARIO:CONTRASEÑA@host-direct/neondb?sslmode=require"
-SESSION_SECRET="cadena-larga-y-segura-para-firmar-sesiones"
-```
-
-### 4. Inicializar Base de Datos
-Genera el cliente de Prisma, aplica las migraciones y puebla los datos iniciales:
-```bash
-# Generar cliente de Prisma
-npx prisma generate
-
-# Aplicar las migraciones a la base de datos
-npx prisma migrate deploy
-
-# Poblar categorías predeterminadas y tips
-npm run seed
-```
-
-### 5. Iniciar Servidor de Desarrollo
-```bash
-npm run dev
-```
-Abre tu navegador en [http://localhost:3000](http://localhost:3000).
+* **Framework Full-Stack:** [Next.js 16](https://nextjs.org/) (App Router, Server Components y Server Actions con React 19).
+* **Lenguaje:** [TypeScript 5](https://www.typescriptlang.org/) de extremo a extremo.
+* **Base de Datos:** [Neon Serverless PostgreSQL](https://neon.tech/) con Connection Pooling.
+* **ORM:** [Prisma ORM 6](https://www.prisma.io/) para modelado y migraciones declarativas.
+* **Estilos y UI:** CSS Moderno Nativo (Design Tokens) con soporte nativo de modo oscuro, diseño responsivo y optimizado para móviles.
+* **Seguridad y Sesión:** Autenticación con cookies `HTTP-only` cifradas mediante JWT (`jose`) y contraseñas hasheadas con `bcryptjs`.
+* **Visualización de Datos:** [Recharts](https://recharts.org/) y [Lucide Icons](https://lucide.dev/).
+* **Soporte PWA:** Manifest y Service Worker integrados para instalación directa en dispositivos móviles.
+* **Alojamiento:** Desplegado de forma continua en [Vercel](https://vercel.com/).
 
 ---
 
-## 👤 Usuarios de Prueba Preconfigurados
+## 👤 Cuentas de Demostración Configuradas
 
-Si inicializaste la base de datos con los seeders, puedes ingresar con cualquiera de estas cuentas:
+Para explorar la aplicación en funcionamiento con datos simulados, se pueden utilizar las siguientes credenciales:
 
-| Usuario | Correo Electrónico | Contraseña | Datos incluidos |
+| Perfil | Correo Electrónico | Contraseña | Enfoque de la Cuenta |
 | :--- | :--- | :--- | :--- |
-| **Estudiante** | `estudiante@prueba.com` | `Prueba123` | Transacciones universitarias, metas activas y presupuestos |
-| **Demo** | `demo@behu.app` | `Demo1234` | Historial amplio de movimientos y categorías personalizadas |
+| **Senior (Acudiente / Demo)** | `demo@behu.app` | `Demo1234` | Gestión familiar, métricas completas, presupuestos y metas. |
+| **Junior (Estudiante)** | `estudiante@prueba.com` | `Prueba123` | Control de límites de mesada, metas de ahorro y educación. |
 
-*También puedes registrar un usuario nuevo desde la pantalla de Registro (`/register`).*
-
----
-
-## 🧪 Pruebas y Validación
-
-El proyecto incluye scripts para validar la integridad del sistema:
-
-```bash
-# Probar la conexión completa con la base de datos Neon
-npm run test:db
-
-# Compilar para producción (validación de tipos y Server Components)
-npm run build
-```
+*(También es posible registrar una cuenta totalmente nueva desde el formulario de registro de la plataforma).*
 
 ---
 
-## ☁️ Despliegue en Vercel
+## 📄 Contexto Académico
 
-1. Importa el repositorio en [Vercel](https://vercel.com/new).
-2. En la sección **Environment Variables**, añade:
-   - `DATABASE_URL`: URL del pooler de Neon.
-   - `DATABASE_URL_UNPOOLED`: URL de conexión directa de Neon.
-   - `SESSION_SECRET`: Cadena segura para JWT.
-3. El comando de build configurado en `package.json` (`prisma generate && next build`) asegurará que Prisma se compile automáticamente en cada despliegue.
-
----
-
-## 📄 Licencia y Créditos
-
-Proyecto desarrollado como parte del curso **FIS 2025-3** (Fundamentos de Ingeniería de Software).  
-Diseñado y construido con enfoque en simplicidad, usabilidad y arquitectura de software limpia.
+Proyecto desarrollado como parte de la asignatura **FIS 2025-3 (Fundamentos de Ingeniería de Software)**.  
+Enfocado en la construcción de software con arquitectura limpia, alta cohesión, bajo acoplamiento y resolución de problemas reales de educación y disciplina financiera.
